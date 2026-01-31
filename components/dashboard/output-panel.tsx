@@ -74,7 +74,7 @@ export function OutputPanel({ isGenerated, campaignData }: OutputPanelProps) {
               className="w-full"
             >
               {activeTab === "landing" ? (
-                <LandingPreview isGenerated={isGenerated} />
+                <LandingPreview isGenerated={isGenerated} data={campaignData} />
               ) : (
                 <SocialCopy isGenerated={isGenerated} data={campaignData} />
               )}
