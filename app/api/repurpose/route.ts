@@ -5,7 +5,7 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-build',
 });
 
-export const runtime = 'edge';
+
 
 export async function POST(req: Request) {
     try {
