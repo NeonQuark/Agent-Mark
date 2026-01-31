@@ -1,56 +1,29 @@
-
 "use client"
 
+import { useCompletion } from "@ai-sdk/react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import { FileText, ArrowRight, Loader2, Copy } from "lucide-react"
 
 export default function RepurposePage() {
-    const [loading, setLoading] = useState(false)
+    const { completion, complete, isLoading } = useCompletion({
+        api: '/api/repurpose',
+        onError: (error) => {
+            console.error(error);
+            alert("Failed to generate content. Please check your API key.");
+        }
+    });
+
     const [content, setContent] = useState("")
-    const [result, setResult] = useState("")
 
     const handleRepurpose = async () => {
         if (!content) return
-        setLoading(true)
-        setResult("")
-
-        try {
-            const response = await fetch('/api/repurpose', {
-                method: 'POST',
-                body: JSON.stringify({ prompt: content }),
-            })
-
-            if (!response.ok) {
-                const errorText = await response.text()
-                throw new Error(errorText || 'Failed to generate')
-            }
-
-            // Simple stream reader
-            const reader = response.body?.getReader()
-            const decoder = new TextDecoder()
-
-            if (reader) {
-                while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-                    const chunk = decoder.decode(value, { stream: true })
-                    // The AI SDK returns data formatted like "0:text", so we act slightly heuristic here 
-                    // or just display raw chunk if it's text. 
-                    // For simplicity in this "alternative fix", we'll verify if we need to parse it.
-                    // Vercel AI SDK 'streamText' often sends raw text if used simply, or specific protocol.
-                    // Let's assume raw text capability or just append.
-                    setResult((prev) => prev + chunk)
-                }
-            }
-        } catch (error: any) {
-            console.error(error)
-            setResult(`Error: ${error.message || "Something went wrong"}`)
-        } finally {
-            setLoading(false)
-        }
+        await complete(content)
     }
+
+    // Use completion as the result
+    const result = completion;
 
     return (
         <>
@@ -73,11 +46,11 @@ export default function RepurposePage() {
                     </div>
                     <Button
                         onClick={handleRepurpose}
-                        disabled={loading || !content}
+                        disabled={isLoading || !content}
                         className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-500"
                     >
-                        {loading ? <Loader2 className="animate-spin mr-2" /> : <ArrowRight className="mr-2" />}
-                        {loading ? "Generating..." : "Generate Thread"}
+                        {isLoading ? <Loader2 className="animate-spin mr-2" /> : <ArrowRight className="mr-2" />}
+                        {isLoading ? "Generating..." : "Generate Thread"}
                     </Button>
                 </div>
 

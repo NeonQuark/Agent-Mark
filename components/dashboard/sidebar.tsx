@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Rocket, History, Settings, Sparkles, ChevronLeft, FolderKanban, Users, Repeat, Search, Calendar } from "lucide-react"
+import { Rocket, History, Settings, Sparkles, ChevronLeft, FolderKanban, Users, Repeat, Search, Calendar, Code } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
@@ -16,6 +16,11 @@ const navItems = [
     label: "Repurpose",
     href: "/dashboard/repurpose",
     icon: Repeat,
+  },
+  {
+    label: "Web Designer",
+    href: "/dashboard/design",
+    icon: Code,
   },
   {
     label: "SEO Briefs",
