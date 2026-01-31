@@ -29,7 +29,22 @@ export async function POST(req: Request) {
             prompt: prompt,
         });
 
-        return result.toTextStreamResponse();
+        // Manually stream the text to avoid SDK version conflicts
+        const stream = new ReadableStream({
+            async start(controller) {
+                const encoder = new TextEncoder();
+                for await (const textPart of result.textStream) {
+                    controller.enqueue(encoder.encode(textPart));
+                }
+                controller.close();
+            },
+        });
+
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+            },
+        });
 
     } catch (error: any) {
         console.error('Error in repurpose:', error);
