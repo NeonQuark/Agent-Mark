@@ -2,7 +2,7 @@
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
     try {
@@ -14,31 +14,25 @@ export async function POST(req: Request) {
 
         const result = await streamText({
             model: google('models/gemini-1.5-pro'),
-            system: `You are a world-class social media ghostwriter and strategist known for going viral.
+            system: `You are an expert social media strategist.
       
-      Your goal: Transform the user's input (article, idea, or text) into a high-engagement Twitter/X thread.
+      Your goal: Transform the user's input into a high-engagement Twitter/X thread.
       
       Structure:
-      1. HOOK: The first tweet must be a scroll-stopper. Use a controversial statement, a surprising statistic, or a strong promise. NO generic openings like "Here's a thread about...".
-      2. BODY: Break concepts into punchy, readable tweets. 1 idea per tweet. Use whitespace effectively.
-      3. CLOSING: Summarize the key takeaway and ask a question to drive engagement.
+      1. HOOK: The first tweet must be engaging and stop the scroll.
+      2. BODY: Break concepts into punchy, readable tweets.
+      3. CLOSING: Summarize and ask a question.
       
-      Tone:
-      - Concise but impactful.
-      - Authority-driven yet conversational.
-      - Use arrows (→) or bullet points for lists.
-      - No hashtags in the middle of sentences.
-      
-      Format:
-      Return the response as a clear sequence of tweets, each separated by "---" so the frontend can split them easily if needed, or just standard numbering "1/" "2/". Let's use "1/", "2/" format.
+      Tone: Concise, professional yet conversational. NO hashtags in sentences.
+      Format: "1/ ...", "2/ ...".
       `,
             prompt: prompt,
         });
 
         return result.toDataStreamResponse();
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error in repurpose:', error);
-        return new Response(JSON.stringify({ error: 'Failed to generate content' }), { status: 500 });
+        return new Response(JSON.stringify({ error: error.message || 'Unknown server error' }), { status: 500 });
     }
 }
