@@ -25,7 +25,7 @@ export default function LandingPage() {
                     </p>
 
                     <div className="pt-8 flex flex-col items-center gap-8 w-full">
-                        <Countdown />
+
 
                         <div className="w-full max-w-md p-1 rounded-2xl bg-gradient-to-br from-zinc-800 to-black">
                             <div className="p-8 bg-black rounded-2xl border border-zinc-800/50 backdrop-blur-xl relative overflow-hidden">
