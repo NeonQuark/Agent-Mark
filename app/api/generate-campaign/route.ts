@@ -9,31 +9,34 @@ export const runtime = 'edge';
 
 export async function POST(req: Request) {
     try {
-        const { prompt } = await req.json();
+        const { idea, vibe } = await req.json();
 
-        if (!prompt) {
-            return new Response('Prompt is required', { status: 400 });
+        if (!idea) {
+            return new Response('Idea is required', { status: 400 });
         }
 
-        const systemPrompt = `You are an expert social media strategist and ghostwriter.
-    Your task is to take the provided content (text or URL) and repurpose it into a highly engaging Twitter/X thread.
-    
-    Rules:
-    - Start with a strong hook (no "Here is a thread").
-    - Use short, punchy sentences.
-    - Use emojis sparingly but effectively.
-    - End with a call to action or question.
-    - Format as "1/ [Content]", "2/ [Content]", etc.`;
+        const prompt = `
+      Act as a world-class marketing strategist.
+      Create a launch campaign for the following project:
+      
+      Project Idea: "${idea}"
+      Vibe/Tone: "${vibe}"
+      
+      Output exactly 3 sections in markdown format:
+      1. **Headline & Value Prop**: A catchy H1 and subheader.
+      2. **Social Media Plan**: 3 tweet ideas and 1 LinkedIn post concept.
+      3. **Landing Page Structure**: 5 key sections to include.
+      
+      Do not include any conversational filler. Just the output.
+    `;
 
         const response = await openai.chat.completions.create({
             model: 'gpt-4o',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: prompt }
-            ],
+            messages: [{ role: 'user', content: prompt }],
             stream: true,
         });
 
+        // Create a ReadableStream from the OpenAI stream
         const stream = new ReadableStream({
             async start(controller) {
                 for await (const chunk of response) {
@@ -52,7 +55,7 @@ export async function POST(req: Request) {
         });
 
     } catch (error) {
-        console.error('Error in repurpose:', error);
-        return new Response('Error generating content', { status: 500 });
+        console.error('Error in generate-campaign:', error);
+        return new Response('Error generating campaign', { status: 500 });
     }
 }

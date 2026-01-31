@@ -8,6 +8,7 @@ import { SpotlightCard } from "@/components/ui/spotlight-card"
 
 interface SocialCopyProps {
   isGenerated: boolean
+  data?: string
 }
 
 const tweetDrafts = [
@@ -40,13 +41,13 @@ const containerVariants = {
 }
 
 const cardVariants = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     y: 20,
     scale: 0.95,
   },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     scale: 1,
     transition: {
@@ -57,7 +58,7 @@ const cardVariants = {
   },
 }
 
-export function SocialCopy({ isGenerated }: SocialCopyProps) {
+export function SocialCopy({ isGenerated, data }: SocialCopyProps) {
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
   const handleCopy = async (id: number, content: string) => {
@@ -68,7 +69,7 @@ export function SocialCopy({ isGenerated }: SocialCopyProps) {
 
   if (!isGenerated) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="flex h-full min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed border-zinc-800 bg-zinc-950/50 p-8"
@@ -88,50 +89,31 @@ export function SocialCopy({ isGenerated }: SocialCopyProps) {
       animate="visible"
       className="space-y-4"
     >
-      {tweetDrafts.map((tweet) => (
-        <motion.div key={tweet.id} variants={cardVariants}>
-          <SpotlightCard className="border-zinc-800 bg-zinc-950">
-            <div className="p-5">
-              <div className="mb-4 flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-800">
-                    <Twitter className="h-4 w-4 text-zinc-300" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Tweet Draft</p>
-                    <p className="text-xs text-zinc-500">
-                      {tweet.content.length} characters
-                    </p>
-                  </div>
+      {data ? (
+        <SpotlightCard className="border-zinc-800 bg-zinc-950">
+          <div className="p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10">
+                  <MessageCircle className="h-4 w-4 text-blue-400" />
                 </div>
-                <motion.div whileTap={{ scale: 0.95 }}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopy(tweet.id, tweet.content)}
-                    className="border-zinc-700 bg-transparent text-zinc-300 hover:bg-zinc-800 hover:text-white"
-                  >
-                    {copiedId === tweet.id ? (
-                      <>
-                        <Check className="mr-1.5 h-3.5 w-3.5 text-green-500" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-1.5 h-3.5 w-3.5" />
-                        Copy
-                      </>
-                    )}
-                  </Button>
-                </motion.div>
+                <p className="text-sm font-medium text-white">Campaign Output</p>
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-200">
-                {tweet.content}
-              </p>
+              <Button variant="ghost" size="sm" onClick={() => {
+                if (data) navigator.clipboard.writeText(data)
+              }}>
+                <Copy className="h-4 w-4 mr-2" /> Copy All
+              </Button>
             </div>
-          </SpotlightCard>
-        </motion.div>
-      ))}
+            <div className="whitespace-pre-wrap text-zinc-300 font-mono text-sm leading-relaxed max-h-[500px] overflow-y-auto">
+              {data}
+            </div>
+          </div>
+        </SpotlightCard>
+      ) : (
+        /* Fallback if no data but isGenerated is true (shouldn't happen often) */
+        <div className="text-zinc-500 text-center">No content generated.</div>
+      )}
     </motion.div>
   )
 }

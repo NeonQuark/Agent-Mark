@@ -9,16 +9,39 @@ import { motion } from "framer-motion"
 export default function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isGenerated, setIsGenerated] = useState(false)
+  const [campaignData, setCampaignData] = useState("")
 
-  const handleGenerate = () => {
+  const handleGenerate = async (idea: string, vibe: string) => {
     setIsGenerating(true)
     setIsGenerated(false)
+    setCampaignData("")
 
-    // Simulate AI generation
-    setTimeout(() => {
-      setIsGenerating(false)
+    try {
+      const response = await fetch('/api/generate-campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idea, vibe }),
+      })
+
+      if (!response.ok) throw new Error('Generation failed')
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          const chunk = decoder.decode(value, { stream: true })
+          setCampaignData(prev => prev + chunk)
+        }
+      }
       setIsGenerated(true)
-    }, 2000)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
@@ -74,7 +97,7 @@ export default function Dashboard() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <OutputPanel isGenerated={isGenerated} />
+            <OutputPanel isGenerated={isGenerated} campaignData={campaignData} />
           </motion.div>
         </div>
       </div>

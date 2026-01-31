@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion"
 
 interface OutputPanelProps {
   isGenerated: boolean
+  campaignData?: string
 }
 
 const slideVariants = {
@@ -28,7 +29,7 @@ const slideVariants = {
   }),
 }
 
-export function OutputPanel({ isGenerated }: OutputPanelProps) {
+export function OutputPanel({ isGenerated, campaignData }: OutputPanelProps) {
   const [activeTab, setActiveTab] = useState("landing")
   const [direction, setDirection] = useState(0)
 
@@ -75,7 +76,7 @@ export function OutputPanel({ isGenerated }: OutputPanelProps) {
               {activeTab === "landing" ? (
                 <LandingPreview isGenerated={isGenerated} />
               ) : (
-                <SocialCopy isGenerated={isGenerated} />
+                <SocialCopy isGenerated={isGenerated} data={campaignData} />
               )}
             </motion.div>
           </AnimatePresence>

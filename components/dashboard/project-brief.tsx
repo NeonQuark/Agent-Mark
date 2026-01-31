@@ -15,7 +15,7 @@ import { SpotlightCard } from "@/components/ui/spotlight-card"
 import { ShimmerButton } from "@/components/ui/shimmer-button"
 
 interface ProjectBriefProps {
-  onGenerate: () => void
+  onGenerate: (idea: string, vibe: string) => void
   isGenerating: boolean
 }
 
@@ -90,7 +90,7 @@ export function ProjectBrief({ onGenerate, isGenerating }: ProjectBriefProps) {
 
           {/* Generate Button with shimmer */}
           <ShimmerButton
-            onClick={onGenerate}
+            onClick={() => onGenerate(idea, vibe)}
             disabled={isGenerating || !idea || !vibe}
             className="w-full"
           >
