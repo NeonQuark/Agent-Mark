@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         }
 
         const result = await streamText({
-            model: google('models/gemini-1.5-flash'),
+            model: google('models/gemini-1.5-pro'),
             system: `You are a world-class social media ghostwriter and strategist known for going viral.
       
       Your goal: Transform the user's input (article, idea, or text) into a high-engagement Twitter/X thread.

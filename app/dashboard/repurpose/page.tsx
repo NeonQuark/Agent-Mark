@@ -11,7 +11,8 @@ export default function RepurposePage() {
         api: '/api/repurpose',
         onError: (error) => {
             console.error(error);
-            alert("Failed to generate content. Please check your API key.");
+            // Show the actual error from the backend/network
+            alert(`Generation failed: ${error.message}`);
         }
     });
 
