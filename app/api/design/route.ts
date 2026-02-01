@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
         console.log('🚀 [API] Design request received. Prompt length:', prompt?.length);
 
-        const result = streamText({
+        const result = await streamText({
             model: google('models/gemini-2.5-flash'),
             system: `You are an expert Frontend Developer and UI/UX Designer.
       
@@ -33,8 +33,8 @@ Rules:
             prompt: `Design a React component for: ${prompt}`,
         });
 
-        // Use the standard AI SDK response format for useCompletion hook
-        return result.toDataStreamResponse();
+        // Use text stream response for useCompletion hook
+        return result.toTextStreamResponse();
 
     } catch (error: any) {
         console.error('Error in design:', error);
