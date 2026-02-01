@@ -1,6 +1,6 @@
 
 import { google } from '@ai-sdk/google';
-import { streamObject } from 'ai';
+import { generateObject } from 'ai';
 import { z } from 'zod';
 
 export const maxDuration = 60;
@@ -11,54 +11,38 @@ export async function POST(req: Request) {
         const idea = body.idea || body.description || body.prompt;
 
         if (!idea) {
-            return new Response('Business description is required', { status: 400 });
+            return new Response(JSON.stringify({ error: 'Business description is required' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
         }
 
         console.log('🚀 [API] Campaign Generation for:', idea.substring(0, 50));
 
-        const result = await streamObject({
+        // Use generateObject instead of streamObject for complete response
+        const result = await generateObject({
             model: google('models/gemini-3-flash-preview'),
             schema: z.object({
-                landingPageCode: z.string().describe("Complete, single-file React component code for a high-conversion landing page. Use Tailwind CSS. Use lucide-react icons. Do NOT use external images, use placeholders or divs. Interactive elements (buttons) should look clickable."),
-                tweets: z.array(z.string()).describe("List of 5 viral tweets promoting this business. Include emojis but NO hashtags."),
-                marketingAngle: z.string().describe("A short 1-sentence explanation of the marketing strategy used."),
+                landingPageCode: z.string().describe("Complete React component code for a landing page. Use Tailwind CSS. Do NOT use external images."),
+                tweets: z.array(z.string()).describe("List of 5 viral tweets promoting this business. Include emojis."),
+                marketingAngle: z.string().describe("A short marketing strategy explanation."),
             }),
-            system: `You are an expert full-stack developer and growth marketer.
-            Your task is to take a business idea and generate BOTH:
-            1. A stunning, dark-themed, "techy" landing page (React + Tailwind).
-            2. A series of punchy launch tweets.
-
-            The design should be premium, using dark backgrounds (zinc-950), glowing accents, and crisp typography.
-            Pass the code as a simple string in 'landingPageCode'.`,
+            system: `You are an expert frontend developer and growth marketer.
+            Create a stunning dark-themed landing page (React + Tailwind) and promotional tweets.
+            Use dark backgrounds (zinc-950), glowing accents, and modern typography.`,
             prompt: `Create a launch package for: ${idea}`,
         });
 
-        // For useObject hook, we need to return the partialObjectStream
-        const encoder = new TextEncoder();
-        const stream = new ReadableStream({
-            async start(controller) {
-                try {
-                    for await (const partialObject of result.partialObjectStream) {
-                        // Send each partial object as JSON
-                        const data = JSON.stringify(partialObject);
-                        controller.enqueue(encoder.encode(data + '\n'));
-                    }
-                    controller.close();
-                } catch (err) {
-                    console.error('Stream error:', err);
-                    controller.error(err);
-                }
-            },
-        });
-
-        return new Response(stream, {
-            headers: {
-                'Content-Type': 'text/plain; charset=utf-8',
-            },
+        // Return complete JSON response
+        return new Response(JSON.stringify(result.object), {
+            headers: { 'Content-Type': 'application/json' }
         });
 
     } catch (error: any) {
         console.error('Error in generate-campaign:', error);
-        return new Response(JSON.stringify({ error: error.message || 'Failed to generate campaign' }), { status: 500 });
+        return new Response(JSON.stringify({ error: error.message || 'Failed to generate campaign' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 }
