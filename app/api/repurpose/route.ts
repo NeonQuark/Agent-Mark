@@ -30,10 +30,32 @@ IMPORTANT: Create a UNIQUE thread based on the specific input provided.`,
             prompt: prompt,
         });
 
-        return result.toDataStreamResponse();
+        // Manual streaming - compatible with all SDK versions
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const chunk of result.textStream) {
+                        controller.enqueue(encoder.encode(chunk));
+                    }
+                    controller.close();
+                } catch (err) {
+                    controller.error(err);
+                }
+            },
+        });
 
-    } catch (error) {
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+            },
+        });
+
+    } catch (error: any) {
         console.error('Error in repurpose:', error);
-        return new Response(JSON.stringify({ error: 'Failed to generate thread' }), { status: 500 });
+        return new Response(JSON.stringify({ error: error.message || 'Failed to generate thread' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 }
