@@ -7,9 +7,14 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
     try {
-        const { prompt } = await req.json();
+        const body = await req.json();
+        console.log('Received request body:', JSON.stringify(body));
+
+        const prompt = body.prompt;
+        console.log('Extracted prompt:', prompt);
 
         if (!prompt) {
+            console.error('No prompt provided!');
             return new Response('Prompt is required', { status: 400 });
         }
 
@@ -25,18 +30,27 @@ Structure:
 3. CLOSING: Summarize and ask a question.
 
 Tone: Concise, professional yet conversational. NO hashtags in sentences.
-Format: "1/ ...", "2/ ...".`;
+Format: "1/ ...", "2/ ...".
 
-        const result = await model.generateContentStream(`${systemPrompt}\n\nUser input: ${prompt}`);
+IMPORTANT: Create a UNIQUE thread based on THIS specific input. Do not use generic templates.`;
+
+        const fullPrompt = `${systemPrompt}\n\nUser input: ${prompt}\n\nTimestamp: ${Date.now()}`;
+        console.log('Sending to Gemini, prompt length:', fullPrompt.length);
+
+        const result = await model.generateContentStream(fullPrompt);
 
         // Create a ReadableStream from the Gemini stream (same pattern as generate-campaign)
         const stream = new ReadableStream({
             async start(controller) {
                 const encoder = new TextEncoder();
+                let chunkCount = 0;
                 for await (const chunk of result.stream) {
                     const text = chunk.text();
+                    chunkCount++;
+                    console.log(`Chunk ${chunkCount}:`, text.substring(0, 50));
                     controller.enqueue(encoder.encode(text));
                 }
+                console.log(`Total chunks sent: ${chunkCount}`);
                 controller.close();
             },
         });
