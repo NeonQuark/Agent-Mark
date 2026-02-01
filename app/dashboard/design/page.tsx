@@ -1,30 +1,28 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { Code2, Loader2, Copy, Check, Paintbrush, Eye } from "lucide-react"
-import { HistoryPanel, useHistory } from "@/components/shared/history-panel"
-import { TabbedOutput } from "@/components/shared/tabbed-output"
+import { Code2, Loader2, Copy, Check, Paintbrush, Home, ShoppingCart, Package, Eye } from "lucide-react"
+
+interface DesignResult {
+    homePage?: string;
+    productPage?: string;
+    cartPage?: string;
+}
 
 export default function DesignPage() {
     const [prompt, setPrompt] = useState("")
-    const [result, setResult] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-    const [copied, setCopied] = useState(false)
-    const [activeTab, setActiveTab] = useState("preview")
-    const [historyItems, setHistoryItems] = useState<any[]>([])
-
-    const { getItems, addItem, deleteItem, clearAll } = useHistory('design-history')
-
-    useEffect(() => {
-        setHistoryItems(getItems())
-    }, [])
+    const [result, setResult] = useState<DesignResult | null>(null)
+    const [activeTab, setActiveTab] = useState<'home' | 'product' | 'cart'>('home')
+    const [viewMode, setViewMode] = useState<'preview' | 'code'>('preview')
+    const [copiedCode, setCopiedCode] = useState(false)
 
     const handleGenerate = async () => {
         if (!prompt) return
         setIsLoading(true)
-        setResult("")
+        setResult(null)
 
         try {
             const response = await fetch('/api/design', {
@@ -33,157 +31,232 @@ export default function DesignPage() {
                 body: JSON.stringify({ prompt }),
             })
 
-            if (!response.ok) throw new Error('Failed to generate')
+            if (!response.ok) throw new Error('Generation failed')
 
-            const text = await response.text()
-            setResult(text)
-            const updated = addItem(prompt, text)
-            setHistoryItems(updated)
+            const data = await response.json()
+            console.log('Design result:', data)
+            setResult(data)
         } catch (error) {
             console.error(error)
-            alert('Generation failed.')
+            alert('Generation failed. Please try again.')
         } finally {
             setIsLoading(false)
         }
     }
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(extractCode(result))
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-    }
-
-    const handleHistorySelect = (item: any) => {
-        setPrompt(item.input)
-        if (item.result) {
-            setResult(item.result)
+    const getCurrentCode = () => {
+        if (!result) return ''
+        switch (activeTab) {
+            case 'home': return result.homePage || ''
+            case 'product': return result.productPage || ''
+            case 'cart': return result.cartPage || ''
         }
     }
 
-    const handleHistoryDelete = (id: string) => {
-        const updated = deleteItem(id)
-        setHistoryItems(updated)
+    const handleCopyCode = () => {
+        navigator.clipboard.writeText(getCurrentCode())
+        setCopiedCode(true)
+        setTimeout(() => setCopiedCode(false), 2000)
     }
 
-    const handleHistoryClear = () => {
-        clearAll()
-        setHistoryItems([])
-    }
+    // Clean and render code in preview
+    const generatePreviewHTML = (code: string) => {
+        // Clean imports and exports
+        let cleaned = code.replace(/import\s+[\s\S]*?from\s+['"][^'"]+['"];?\n?/g, '')
+        cleaned = cleaned.replace(/export\s+default\s+function\s+(\w+)/g, 'function $1')
+        cleaned = cleaned.replace(/export\s+default\s+/g, 'const MainComponent = ')
 
-    const extractCode = (text: string) => {
-        const codeMatch = text.match(/```(?:jsx|tsx|javascript|react)?\n?([\s\S]*?)```/)
-        return codeMatch ? codeMatch[1].trim() : text
-    }
-
-    const getPreviewHTML = () => {
-        const code = extractCode(result)
         return `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdn.tailwindcss.com"></script>
-<style>body{margin:0;background:#09090b;min-height:100vh;display:flex;align-items:center;justify-content:center;}</style></head><body><div id="root"></div>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script type="text/babel">
-const ArrowRight=()=><span>→</span>;const Check=()=><span>✓</span>;const Star=()=><span>⭐</span>;
-const Zap=()=><span>⚡</span>;const Code=()=><span>💻</span>;const Globe=()=><span>🌐</span>;
-const Mail=()=><span>📧</span>;const Phone=()=><span>📞</span>;const PlayCircle=()=><span>▶️</span>;
-try{${code.replace(/import\s+.*from\s+['"][^'"]+['"];?/g, '').replace(/export\s+default\s+/g, 'const App=')}
-const root=ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(App||HeroSection||MainComponent||Component));
-}catch(e){document.getElementById('root').innerHTML='<div style="color:red;padding:20px">'+e.message+'</div>';}
-</script></body></html>`
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: 0; background: #09090b; color: white; font-family: system-ui, -apple-system, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    a { text-decoration: none; color: inherit; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+    try {
+      ${cleaned}
+      
+      const componentNames = ['HomePage', 'ProductPage', 'CartPage', 'CheckoutPage', 'LandingPage', 
+        'MainComponent', 'App', 'Page', 'Home', 'Product', 'Cart', 'Checkout'];
+      let Component = null;
+      for (const name of componentNames) {
+        if (typeof window[name] !== 'undefined') {
+          Component = window[name];
+          break;
+        }
+        try {
+          Component = eval(name);
+          if (Component) break;
+        } catch(e) {}
+      }
+      
+      if (Component) {
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(Component));
+      } else {
+        document.getElementById('root').innerHTML = '<div style="padding:40px;text-align:center;color:#fbbf24;"><h2>⚠️ Component not found</h2><p style="color:#a1a1aa;">Could not find a React component to render.</p></div>';
+      }
+    } catch(e) {
+      console.error('Preview error:', e);
+      document.getElementById('root').innerHTML = '<div style="padding:40px;color:#f87171;"><h2>Preview Error</h2><pre style="white-space:pre-wrap;color:#a1a1aa;">' + e.message + '</pre></div>';
+    }
+  </script>
+</body>
+</html>`
     }
 
     const tabs = [
-        {
-            id: 'preview',
-            label: 'Live Preview',
-            icon: <Eye className="h-4 w-4" />,
-            content: (
-                <iframe
-                    srcDoc={getPreviewHTML()}
-                    className="w-full h-full border-0"
-                    sandbox="allow-scripts"
-                    title="Preview"
-                />
-            )
-        },
-        {
-            id: 'code',
-            label: 'Code',
-            icon: <Code2 className="h-4 w-4" />,
-            content: (
-                <div className="p-4 h-full overflow-auto">
-                    <div className="flex justify-end mb-2">
-                        <Button variant="ghost" size="sm" onClick={handleCopy} className={copied ? "text-green-400" : "text-zinc-400"}>
-                            {copied ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
-                            {copied ? "Copied!" : "Copy"}
-                        </Button>
-                    </div>
-                    <pre className="font-mono text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                        {extractCode(result)}
-                    </pre>
-                </div>
-            )
-        }
+        { id: 'home' as const, label: 'Home Page', icon: Home },
+        { id: 'product' as const, label: 'Product Page', icon: Package },
+        { id: 'cart' as const, label: 'Cart / Checkout', icon: ShoppingCart },
     ]
 
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-black text-white">
+            {/* Header */}
             <header className="border-b border-zinc-800 bg-zinc-950/50 backdrop-blur px-8 py-5">
-                <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2">
-                    <Paintbrush className="h-6 w-6 text-purple-400" />
-                    Web Designer
-                </h1>
-                <p className="text-sm text-zinc-500">Generate React + Tailwind components from descriptions.</p>
+                <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                        <Paintbrush className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-white">
+                            Web Designer
+                        </h1>
+                        <p className="text-sm text-zinc-500">Generate a complete e-commerce website with 3 pages</p>
+                    </div>
+                </div>
             </header>
 
             <div className="flex-1 flex overflow-hidden">
-                {/* Left Panel */}
-                <div className="w-80 flex flex-col border-r border-zinc-800 bg-zinc-950/30">
-                    <div className="p-4 border-b border-zinc-800">
-                        <label className="text-sm font-medium text-zinc-400 mb-2 block">Describe your component</label>
-                        <textarea
-                            className="w-full h-32 bg-zinc-900/50 border border-zinc-800 rounded-xl p-3 text-zinc-200 resize-none focus:ring-1 focus:ring-purple-500 outline-none text-sm placeholder:text-zinc-600"
-                            placeholder="E.g. A modern hero section with gradient background..."
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                        />
-                        <Button
-                            onClick={handleGenerate}
-                            disabled={isLoading || !prompt}
-                            className="w-full mt-3 bg-purple-600 hover:bg-purple-500"
-                        >
-                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Code2 className="h-4 w-4 mr-2" />}
-                            {isLoading ? "Generating..." : "Generate Component"}
-                        </Button>
-                    </div>
+                {/* Left Panel: Input */}
+                <div className="w-80 flex flex-col border-r border-zinc-800 bg-zinc-950/30 p-6">
+                    <label className="text-sm font-medium text-zinc-400 mb-2">Describe your store</label>
+                    <textarea
+                        className="w-full h-40 bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-zinc-200 resize-none focus:ring-1 focus:ring-pink-500 outline-none text-sm placeholder:text-zinc-600"
+                        placeholder="E.g. A modern sneaker store with dark theme..."
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                    />
+                    <Button
+                        onClick={handleGenerate}
+                        disabled={isLoading || !prompt}
+                        className="w-full mt-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 h-12 text-base"
+                    >
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                                Generating 3 pages...
+                            </>
+                        ) : (
+                            <>
+                                <Paintbrush className="h-5 w-5 mr-2" />
+                                Generate Website
+                            </>
+                        )}
+                    </Button>
 
-                    <div className="flex-1 overflow-auto p-4">
-                        <HistoryPanel
-                            items={historyItems}
-                            onSelect={handleHistorySelect}
-                            onDelete={handleHistoryDelete}
-                            onClear={handleHistoryClear}
-                        />
-                    </div>
+                    {result && (
+                        <div className="mt-6 space-y-2">
+                            <p className="text-xs text-zinc-500 uppercase tracking-wider">Generated Pages</p>
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${activeTab === tab.id
+                                            ? 'bg-zinc-800 text-white'
+                                            : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300'
+                                        }`}
+                                >
+                                    <tab.icon className="h-4 w-4" />
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* Right Panel */}
-                <div className="flex-1 p-4">
-                    <TabbedOutput
-                        tabs={tabs}
-                        activeTab={activeTab}
-                        onTabChange={setActiveTab}
-                        hasContent={!!result}
-                        emptyState={
-                            <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-4">
-                                <Paintbrush className="h-12 w-12 opacity-50" />
-                                <p>Describe a component to generate code</p>
+                {/* Right Panel: Output */}
+                <div className="flex-1 flex flex-col bg-[#0d1117]">
+                    {/* View Mode Toggle */}
+                    {result && (
+                        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950/80 px-4">
+                            <div className="flex">
+                                <button
+                                    onClick={() => setViewMode('preview')}
+                                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${viewMode === 'preview'
+                                            ? 'text-green-400 border-green-400 bg-green-500/5'
+                                            : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                                        }`}
+                                >
+                                    <Eye className="h-4 w-4" />
+                                    Preview
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('code')}
+                                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${viewMode === 'code'
+                                            ? 'text-blue-400 border-blue-400 bg-blue-500/5'
+                                            : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                                        }`}
+                                >
+                                    <Code2 className="h-4 w-4" />
+                                    Code
+                                </button>
                             </div>
-                        }
-                    />
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleCopyCode}
+                                className={copiedCode ? "text-green-400" : "text-zinc-400"}
+                            >
+                                {copiedCode ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                                {copiedCode ? "Copied!" : "Copy"}
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* Content */}
+                    <div className="flex-1 overflow-auto">
+                        {!result ? (
+                            <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-4">
+                                <div className="h-16 w-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                                    <Paintbrush className="h-8 w-8 opacity-50" />
+                                </div>
+                                <p>Describe your store and click Generate</p>
+                                <p className="text-sm text-zinc-700">You'll get Home, Product, and Cart pages</p>
+                            </div>
+                        ) : (
+                            <motion.div
+                                key={`${activeTab}-${viewMode}`}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="h-full"
+                            >
+                                {viewMode === 'preview' ? (
+                                    <iframe
+                                        srcDoc={generatePreviewHTML(getCurrentCode())}
+                                        className="w-full h-full border-0"
+                                        sandbox="allow-scripts"
+                                        title={`${activeTab} Preview`}
+                                    />
+                                ) : (
+                                    <pre className="p-6 font-mono text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
+                                        {getCurrentCode()}
+                                    </pre>
+                                )}
+                            </motion.div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
