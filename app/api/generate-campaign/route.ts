@@ -6,28 +6,28 @@ import { z } from 'zod';
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-    try {
-        const body = await req.json();
-        const idea = body.idea || body.description || body.prompt;
+  try {
+    const body = await req.json();
+    const idea = body.idea || body.description || body.prompt;
 
-        if (!idea) {
-            return new Response(JSON.stringify({ error: 'Business description is required' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
+    if (!idea) {
+      return new Response(JSON.stringify({ error: 'Business description is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
-        console.log('🚀 [API] Campaign Generation for:', idea.substring(0, 50));
+    console.log('🚀 [API] Campaign Generation for:', idea.substring(0, 50));
 
-        // Use generateObject instead of streamObject for complete response
-        const result = await generateObject({
-            model: google('models/gemini-3-flash-preview'),
-            schema: z.object({
-                landingPageCode: z.string().describe("A complete React functional component using inline styles for a stunning landing page. Use style={{...}} syntax for styling."),
-                tweets: z.array(z.string()).describe("Exactly 5 viral promotional tweets with emojis. No hashtags."),
-                marketingAngle: z.string().describe("A one-sentence marketing strategy."),
-            }),
-            system: `You are a React developer creating a STUNNING landing page.
+    // Use generateObject instead of streamObject for complete response
+    const result = await generateObject({
+      model: google('models/gemini-2.5-flash-lite'),
+      schema: z.object({
+        landingPageCode: z.string().describe("A complete React functional component using inline styles for a stunning landing page. Use style={{...}} syntax for styling."),
+        tweets: z.array(z.string()).describe("Exactly 5 viral promotional tweets with emojis. No hashtags."),
+        marketingAngle: z.string().describe("A one-sentence marketing strategy."),
+      }),
+      system: `You are a React developer creating a STUNNING landing page.
 
 OUTPUT FORMAT - Generate a React component like this:
 function LandingPage() {
@@ -67,19 +67,19 @@ REQUIREMENTS:
 4. Use emoji for icons: 🚀 ✨ ⚡ 💡 🎯 ⭐ 🔥 💎 🌟 ✅
 5. Create: Hero with gradient headline, Features grid (3-4 cards), CTA section, Footer
 6. Make it VISUALLY STUNNING with gradients and modern styling`,
-            prompt: `Create a beautiful landing page for: ${idea}`,
-        });
+      prompt: `Create a beautiful landing page for: ${idea}`,
+    });
 
-        // Return complete JSON response
-        return new Response(JSON.stringify(result.object), {
-            headers: { 'Content-Type': 'application/json' }
-        });
+    // Return complete JSON response
+    return new Response(JSON.stringify(result.object), {
+      headers: { 'Content-Type': 'application/json' }
+    });
 
-    } catch (error: any) {
-        console.error('Error in generate-campaign:', error);
-        return new Response(JSON.stringify({ error: error.message || 'Failed to generate campaign' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
+  } catch (error: any) {
+    console.error('Error in generate-campaign:', error);
+    return new Response(JSON.stringify({ error: error.message || 'Failed to generate campaign' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

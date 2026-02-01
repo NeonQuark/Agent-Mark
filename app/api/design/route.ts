@@ -6,26 +6,26 @@ import { z } from 'zod';
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-    try {
-        const { prompt } = await req.json();
+  try {
+    const { prompt } = await req.json();
 
-        if (!prompt) {
-            return new Response(JSON.stringify({ error: 'Prompt is required' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
+    if (!prompt) {
+      return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
-        console.log('🚀 [API] Design request received:', prompt?.substring(0, 50));
+    console.log('🚀 [API] Design request received:', prompt?.substring(0, 50));
 
-        const result = await generateObject({
-            model: google('models/gemini-3-flash-preview'),
-            schema: z.object({
-                homePage: z.string().describe("Complete React component for the Home/Landing page with inline styles"),
-                productPage: z.string().describe("Complete React component for a Sample Product page with inline styles"),
-                cartPage: z.string().describe("Complete React component for the Checkout/Cart page with inline styles"),
-            }),
-            system: `You are an expert e-commerce frontend developer. Create 3 React components for a website.
+    const result = await generateObject({
+      model: google('models/gemini-2.5-flash-lite'),
+      schema: z.object({
+        homePage: z.string().describe("Complete React component for the Home/Landing page with inline styles"),
+        productPage: z.string().describe("Complete React component for a Sample Product page with inline styles"),
+        cartPage: z.string().describe("Complete React component for the Checkout/Cart page with inline styles"),
+      }),
+      system: `You are an expert e-commerce frontend developer. Create 3 React components for a website.
 
 EACH PAGE should be a complete, self-contained React functional component using INLINE STYLES.
 
@@ -58,18 +58,18 @@ USE GRADIENTS: linear-gradient(to right, #3b82f6, #8b5cf6)
 DARK THEME: background #09090b, cards #27272a, text white/#a1a1aa
 
 Make each page visually STUNNING with modern design.`,
-            prompt: `Create an e-commerce website for: ${prompt}`,
-        });
+      prompt: `Create an e-commerce website for: ${prompt}`,
+    });
 
-        return new Response(JSON.stringify(result.object), {
-            headers: { 'Content-Type': 'application/json' }
-        });
+    return new Response(JSON.stringify(result.object), {
+      headers: { 'Content-Type': 'application/json' }
+    });
 
-    } catch (error: any) {
-        console.error('Error in design:', error);
-        return new Response(JSON.stringify({ error: error.message || 'Failed to generate design' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
+  } catch (error: any) {
+    console.error('Error in design:', error);
+    return new Response(JSON.stringify({ error: error.message || 'Failed to generate design' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }
