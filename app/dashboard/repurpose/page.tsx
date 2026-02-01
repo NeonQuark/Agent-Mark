@@ -1,30 +1,47 @@
 "use client"
 
-import { useCompletion } from "@ai-sdk/react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { FileText, ArrowRight, Loader2, Copy } from "lucide-react"
+import { FileText, ArrowRight, Loader2, Copy, Check } from "lucide-react"
 
 export default function RepurposePage() {
-    const { completion, complete, isLoading } = useCompletion({
-        api: '/api/repurpose',
-        onError: (error) => {
-            console.error(error);
-            // Show the actual error from the backend/network
-            alert(`Generation failed: ${error.message}`);
-        }
-    });
-
     const [content, setContent] = useState("")
+    const [result, setResult] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
+    const [copied, setCopied] = useState(false)
 
     const handleRepurpose = async () => {
         if (!content) return
-        await complete(content)
+        setIsLoading(true)
+        setResult("")
+
+        try {
+            const response = await fetch('/api/repurpose', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: content }),
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to generate thread')
+            }
+
+            const text = await response.text()
+            setResult(text)
+        } catch (error) {
+            console.error(error)
+            alert('Generation failed. Please try again.')
+        } finally {
+            setIsLoading(false)
+        }
     }
 
-    // Use completion as the result
-    const result = completion;
+    const handleCopy = () => {
+        navigator.clipboard.writeText(result)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
 
     return (
         <>
@@ -37,7 +54,7 @@ export default function RepurposePage() {
                 {/* Input Section */}
                 <div className="flex flex-col gap-4">
                     <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 flex-1 flex flex-col">
-                        <label className="text-sm font-medium text-zinc-400 mb-2">Paste your content or URL</label>
+                        <label className="text-sm font-medium text-zinc-400 mb-2">Paste your content</label>
                         <textarea
                             className="flex-1 bg-transparent border-none resize-none focus:ring-0 text-zinc-200 outline-none p-2"
                             placeholder="Paste your article text here..."
@@ -56,11 +73,11 @@ export default function RepurposePage() {
                 </div>
 
                 {/* Output Section */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 relative overflow-hidden">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 relative overflow-hidden flex flex-col">
                     {!result ? (
                         <div className="h-full flex flex-col items-center justify-center text-zinc-600">
                             <FileText className="h-12 w-12 mb-4 opacity-50" />
-                            <p>Generated content will appear here</p>
+                            <p>Generated thread will appear here</p>
                         </div>
                     ) : (
                         <motion.div
@@ -70,8 +87,14 @@ export default function RepurposePage() {
                         >
                             <div className="flex justify-between items-center mb-4 border-b border-zinc-800 pb-2">
                                 <span className="text-sm font-mono text-blue-400">Twitter Thread</span>
-                                <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText(result)}>
-                                    <Copy className="h-4 w-4 mr-2" /> Copy
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleCopy}
+                                    className={copied ? "text-green-400" : ""}
+                                >
+                                    {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                                    {copied ? "Copied!" : "Copy"}
                                 </Button>
                             </div>
                             <div className="whitespace-pre-wrap text-zinc-300 font-mono text-sm overflow-y-auto flex-1 leading-relaxed">

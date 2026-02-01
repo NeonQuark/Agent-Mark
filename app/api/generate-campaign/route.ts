@@ -8,7 +8,6 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        // Allow 'idea' or 'prompt' or 'description'
         const idea = body.idea || body.description || body.prompt;
 
         if (!idea) {
@@ -17,8 +16,6 @@ export async function POST(req: Request) {
 
         console.log('🚀 [API] Campaign Generation for:', idea.substring(0, 50));
 
-        // Use streamObject for structured output (Code + Tweets)
-        // Using "gemini-2.5-flash" as verified working (with new key)
         const result = await streamObject({
             model: google('models/gemini-2.5-flash-lite'),
             schema: z.object({
@@ -36,7 +33,29 @@ export async function POST(req: Request) {
             prompt: `Create a launch package for: ${idea}`,
         });
 
-        return result.toTextStreamResponse();
+        // For useObject hook, we need to return the partialObjectStream
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const partialObject of result.partialObjectStream) {
+                        // Send each partial object as JSON
+                        const data = JSON.stringify(partialObject);
+                        controller.enqueue(encoder.encode(data + '\n'));
+                    }
+                    controller.close();
+                } catch (err) {
+                    console.error('Stream error:', err);
+                    controller.error(err);
+                }
+            },
+        });
+
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+            },
+        });
 
     } catch (error: any) {
         console.error('Error in generate-campaign:', error);
