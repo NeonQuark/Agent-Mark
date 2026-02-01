@@ -12,46 +12,29 @@ export async function POST(req: Request) {
             return new Response('Prompt is required', { status: 400 });
         }
 
-        // Updated to available model in 2026
-        const result = await streamText({
+        console.log('🚀 [API] Design request received. Prompt length:', prompt?.length);
+
+        const result = streamText({
             model: google('models/gemini-2.5-flash'),
             system: `You are an expert Frontend Developer and UI/UX Designer.
       
-      Your goal: specific tailored React + Tailwind CSS code based on the user's request.
+Your goal: Generate specific tailored React + Tailwind CSS code based on the user's request.
       
-      Rules:
-      - Return ONLY the code for the component.
-      - Use 'lucide-react' for icons.
-      - Use standard Tailwind utility classes.
-      - Ensure the design is modern, clean, and responsive.
-      - Do not include 'import React' if not needed (Next.js/React 19).
-      - If multiple files are needed, strict to one file or provide the main logical component.
-      - The component should be exported as default.
-      - Do not wrap in markdown code blocks like \`\`\`tsx ... \`\`\`. Return raw text of the code if possible, or if you must, use strictly one block.
-      `,
+Rules:
+- Return ONLY the code for the component.
+- Use 'lucide-react' for icons.
+- Use standard Tailwind utility classes.
+- Ensure the design is modern, clean, and responsive.
+- Do not include 'import React' if not needed (Next.js/React 19).
+- If multiple files are needed, stick to one file or provide the main logical component.
+- The component should be exported as default.
+- Do not wrap in markdown code blocks. Return raw code directly.
+`,
             prompt: `Design a React component for: ${prompt}`,
         });
 
-        const encoder = new TextEncoder();
-        const stream = new ReadableStream({
-            async start(controller) {
-                try {
-                    for await (const chunk of result.textStream) {
-                        controller.enqueue(encoder.encode(chunk));
-                    }
-                    controller.close();
-                } catch (err) {
-                    console.error('Stream processing error:', err);
-                    controller.error(err);
-                }
-            },
-        });
-
-        return new Response(stream, {
-            headers: {
-                'Content-Type': 'text/plain; charset=utf-8',
-            },
-        });
+        // Use the standard AI SDK response format for useCompletion hook
+        return result.toDataStreamResponse();
 
     } catch (error: any) {
         console.error('Error in design:', error);
