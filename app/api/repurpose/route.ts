@@ -18,7 +18,7 @@ export async function POST(req: Request) {
             return new Response('Prompt is required', { status: 400 });
         }
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
         const systemPrompt = `You are an expert social media strategist.
 
