@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ProjectBrief } from "@/components/dashboard/project-brief"
 import { motion } from "framer-motion"
-import { Code2, Twitter, Copy, Terminal, Globe, Sparkles } from "lucide-react"
+import { Code2, Twitter, Copy, Terminal, Globe, Sparkles, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface CampaignResult {
@@ -15,7 +15,7 @@ interface CampaignResult {
 export default function Dashboard() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [result, setResult] = useState<CampaignResult | null>(null)
-  const [activeTab, setActiveTab] = useState<'code' | 'tweets'>('code')
+  const [activeTab, setActiveTab] = useState<'preview' | 'code' | 'tweets'>('preview')
 
   const handleGenerate = async (idea: string) => {
     setIsGenerating(true)
@@ -43,10 +43,7 @@ export default function Dashboard() {
       }
 
       // Parse the streamed JSON (Vercel AI SDK format)
-      // The format is like: 0:"partial" 0:"json" ...
-      // We need to extract the final object
       try {
-        // Try to find JSON in the response
         const jsonMatch = fullText.match(/\{[\s\S]*\}/)
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0])
@@ -54,7 +51,6 @@ export default function Dashboard() {
         }
       } catch (parseError) {
         console.error('Parse error:', parseError)
-        // Fallback: show raw text
         setResult({ landingPageCode: fullText, tweets: [] })
       }
 
@@ -63,6 +59,60 @@ export default function Dashboard() {
     } finally {
       setIsGenerating(false)
     }
+  }
+
+  // Generate preview HTML from React code
+  const generatePreviewHTML = (code: string) => {
+    // Wrap the code in a full HTML document with Tailwind
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { margin: 0; background: #09090b; color: white; font-family: system-ui, sans-serif; }
+    .icon { display: inline-block; width: 1em; height: 1em; background: currentColor; mask-size: contain; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    // Mock lucide-react icons
+    const Rocket = () => <span>🚀</span>;
+    const Sparkles = () => <span>✨</span>;
+    const ArrowRight = () => <span>→</span>;
+    const Check = () => <span>✓</span>;
+    const Star = () => <span>⭐</span>;
+    const Zap = () => <span>⚡</span>;
+    const Code = () => <span>💻</span>;
+    const Globe = () => <span>🌐</span>;
+    const Mail = () => <span>📧</span>;
+    const Phone = () => <span>📞</span>;
+    const MapPin = () => <span>📍</span>;
+    const Clock = () => <span>🕐</span>;
+    const Package = () => <span>📦</span>;
+    const Target = () => <span>🎯</span>;
+    const Flame = () => <span>🔥</span>;
+    const Leaf = () => <span>🌿</span>;
+    const Drone = () => <span>🛸</span>;
+    const Pizza = () => <span>🍕</span>;
+    const MousePointerClick = () => <span>👆</span>;
+    
+    try {
+      ${code.replace(/^import.*$/gm, '// import removed').replace(/export default /g, 'const MainComponent = ')}
+      
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<MainComponent />);
+    } catch (e) {
+      document.getElementById('root').innerHTML = '<div style="padding: 20px; color: #f87171;"><h2>Preview Error</h2><pre>' + e.message + '</pre></div>';
+    }
+  </script>
+</body>
+</html>`;
   }
 
   return (
@@ -122,6 +172,16 @@ export default function Dashboard() {
             {/* Tab Headers */}
             <div className="flex border-b border-zinc-800 mb-4">
               <button
+                onClick={() => setActiveTab('preview')}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'preview'
+                    ? 'text-green-400 border-b-2 border-green-400'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+              >
+                <Eye className="h-4 w-4" />
+                Live Preview
+              </button>
+              <button
                 onClick={() => setActiveTab('code')}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'code'
                     ? 'text-blue-400 border-b-2 border-blue-400'
@@ -129,7 +189,7 @@ export default function Dashboard() {
                   }`}
               >
                 <Code2 className="h-4 w-4" />
-                Landing Page Code
+                Code
               </button>
               <button
                 onClick={() => setActiveTab('tweets')}
@@ -145,15 +205,47 @@ export default function Dashboard() {
 
             {/* Tab Content */}
             <div className="flex-1 bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden relative">
-              {/* Grid effect */}
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
 
-              {activeTab === 'code' && (
+              {/* Live Preview Tab */}
+              {activeTab === 'preview' && (
                 <div className="h-full flex flex-col">
-                  {/* Code Header */}
                   <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
                     <div className="flex items-center gap-2 text-sm text-zinc-400">
                       <Globe className="h-4 w-4" />
+                      <span className="font-mono">Preview</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="h-2 w-2 rounded-full bg-red-500/50" />
+                      <div className="h-2 w-2 rounded-full bg-yellow-500/50" />
+                      <div className="h-2 w-2 rounded-full bg-green-500/50" />
+                    </div>
+                  </div>
+                  <div className="flex-1 bg-[#09090b]">
+                    {result?.landingPageCode ? (
+                      <iframe
+                        srcDoc={generatePreviewHTML(result.landingPageCode)}
+                        className="w-full h-full border-0"
+                        sandbox="allow-scripts"
+                        title="Landing Page Preview"
+                      />
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-4">
+                        <div className="h-16 w-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                          <Eye className="h-8 w-8 opacity-50" />
+                        </div>
+                        <p className="text-sm">Live preview will appear here...</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Code Tab */}
+              {activeTab === 'code' && (
+                <div className="h-full flex flex-col">
+                  <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
+                    <div className="flex items-center gap-2 text-sm text-zinc-400">
+                      <Code2 className="h-4 w-4" />
                       <span className="font-mono">LandingPage.tsx</span>
                     </div>
                     {result?.landingPageCode && (
@@ -167,8 +259,7 @@ export default function Dashboard() {
                       </Button>
                     )}
                   </div>
-                  {/* Code Content */}
-                  <div className="flex-1 overflow-auto p-4">
+                  <div className="flex-1 overflow-auto p-4 bg-[#0d1117]">
                     {result?.landingPageCode ? (
                       <pre className="font-mono text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
                         {result.landingPageCode}
@@ -185,6 +276,7 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {/* Tweets Tab */}
               {activeTab === 'tweets' && (
                 <div className="h-full overflow-auto p-4">
                   {result?.tweets && result.tweets.length > 0 ? (
