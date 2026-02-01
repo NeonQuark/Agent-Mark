@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs';
 import path from 'path';
 
-async function testFinal() {
+async function testSafeModel() {
     let apiKey = '';
     try {
         const envPath = path.join(process.cwd(), '.env.local');
@@ -15,18 +15,19 @@ async function testFinal() {
     } catch (e) { }
 
     if (!apiKey) {
-        console.log('Using provided key...');
-        apiKey = 'AIzaSyCxYgvCiyy7ovDugxrT9hh55Cm5TiSodhw'; // Using the key user provided to be sure
+        console.log('Using hardcoded key for test...');
+        apiKey = 'AIzaSyCxYgvCiyy7ovDugxrT9hh55Cm5TiSodhw';
     }
 
-    console.log('🚀 Testing confirmed model: gemini-2.5-flash');
+    const modelName = 'gemini-flash-latest'; // Safer alias
+    console.log(`🚀 Testing safer model alias: ${modelName}`);
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: modelName });
 
-        const result = await model.generateContent('Write a 5 word poem about coding.');
-        console.log('✅ GENERATION SUCCESS!');
+        const result = await model.generateContent('Say "Stable" if you hear me.');
+        console.log('✅ SUCCESS!');
         console.log('📜 Output:', result.response.text());
 
     } catch (error) {
@@ -34,4 +35,4 @@ async function testFinal() {
     }
 }
 
-testFinal();
+testSafeModel();
