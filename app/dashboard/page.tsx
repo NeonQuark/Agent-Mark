@@ -103,10 +103,33 @@ export default function Dashboard() {
     const MousePointerClick = () => <span>👆</span>;
     
     try {
-      ${code.replace(/^import.*$/gm, '// import removed').replace(/export default /g, 'const MainComponent = ')}
+      // Process the code: remove imports and handle various export patterns
+      let processedCode = \`${code}\`;
       
+      // Remove all import statements
+      processedCode = processedCode.replace(/^import.*$/gm, '');
+      
+      // Handle: export default function ComponentName
+      processedCode = processedCode.replace(/export\\s+default\\s+function\\s+(\\w+)/g, 'function $1');
+      
+      // Handle: export default ComponentName (at end)
+      processedCode = processedCode.replace(/export\\s+default\\s+(\\w+);?\\s*$/gm, '');
+      
+      // Handle: const Component = ... export default Component
+      processedCode = processedCode.replace(/export\\s+default\\s+/g, 'const MainComponent = ');
+      
+      // Find the component name from function declarations
+      const funcMatch = processedCode.match(/function\\s+(\\w+)\\s*\\(/);
+      const constMatch = processedCode.match(/const\\s+(\\w+)\\s*=\\s*\\(/);
+      const componentName = funcMatch ? funcMatch[1] : (constMatch ? constMatch[1] : 'MainComponent');
+      
+      // Execute the processed code
+      eval(processedCode);
+      
+      // Try to render the found component
+      const ComponentToRender = eval(componentName);
       const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<MainComponent />);
+      root.render(React.createElement(ComponentToRender));
     } catch (e) {
       document.getElementById('root').innerHTML = '<div style="padding: 20px; color: #f87171;"><h2>Preview Error</h2><pre>' + e.message + '</pre></div>';
     }
@@ -174,8 +197,8 @@ export default function Dashboard() {
               <button
                 onClick={() => setActiveTab('preview')}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'preview'
-                    ? 'text-green-400 border-b-2 border-green-400'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                  ? 'text-green-400 border-b-2 border-green-400'
+                  : 'text-zinc-500 hover:text-zinc-300'
                   }`}
               >
                 <Eye className="h-4 w-4" />
@@ -184,8 +207,8 @@ export default function Dashboard() {
               <button
                 onClick={() => setActiveTab('code')}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'code'
-                    ? 'text-blue-400 border-b-2 border-blue-400'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                  ? 'text-blue-400 border-b-2 border-blue-400'
+                  : 'text-zinc-500 hover:text-zinc-300'
                   }`}
               >
                 <Code2 className="h-4 w-4" />
@@ -194,8 +217,8 @@ export default function Dashboard() {
               <button
                 onClick={() => setActiveTab('tweets')}
                 className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'tweets'
-                    ? 'text-blue-400 border-b-2 border-blue-400'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                  ? 'text-blue-400 border-b-2 border-blue-400'
+                  : 'text-zinc-500 hover:text-zinc-300'
                   }`}
               >
                 <Twitter className="h-4 w-4" />
