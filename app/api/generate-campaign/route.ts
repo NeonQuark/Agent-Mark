@@ -17,7 +17,7 @@ export async function POST(req: Request) {
         console.log('🚀 [API] Campaign Generation for:', idea.substring(0, 50));
 
         const result = await streamObject({
-            model: google('models/gemini-2.5-flash-lite'),
+            model: google('models/gemini-3-flash-preview'),
             schema: z.object({
                 landingPageCode: z.string().describe("Complete, single-file React component code for a high-conversion landing page. Use Tailwind CSS. Use lucide-react icons. Do NOT use external images, use placeholders or divs. Interactive elements (buttons) should look clickable."),
                 tweets: z.array(z.string()).describe("List of 5 viral tweets promoting this business. Include emojis but NO hashtags."),

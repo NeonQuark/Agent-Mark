@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         console.log('🚀 [API] Design request received. Prompt length:', prompt?.length);
 
         const result = await streamText({
-            model: google('models/gemini-2.5-flash-lite'),
+            model: google('models/gemini-3-flash-preview'),
             system: `You are an expert Frontend Developer and UI/UX Designer.
       
 Your goal: Generate specific tailored React + Tailwind CSS code based on the user's request.
