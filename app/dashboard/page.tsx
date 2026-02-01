@@ -80,9 +80,32 @@ export default function Dashboard() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            zinc: {
+              50: '#fafafa', 100: '#f4f4f5', 200: '#e4e4e7', 300: '#d4d4d8',
+              400: '#a1a1aa', 500: '#71717a', 600: '#52525b', 700: '#3f3f46',
+              800: '#27272a', 900: '#18181b', 950: '#09090b'
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    body { margin: 0; background: #09090b; color: white; font-family: system-ui, sans-serif; }
+    body { margin: 0; background: #09090b; color: white; font-family: system-ui, -apple-system, sans-serif; }
     * { box-sizing: border-box; }
+    /* Fallback styles if Tailwind doesn't load */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+    button, .btn { cursor: pointer; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 500; }
+    input { padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid #3f3f46; background: #27272a; color: white; }
+    h1 { font-size: 2.5rem; font-weight: bold; }
+    h2 { font-size: 2rem; font-weight: 600; }
+    h3 { font-size: 1.5rem; font-weight: 600; }
+    section { padding: 4rem 1rem; }
   </style>
 </head>
 <body>
@@ -230,8 +253,8 @@ export default function Dashboard() {
             <button
               onClick={() => setActiveTab('preview')}
               className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'preview'
-                  ? 'text-green-400 border-green-400 bg-green-500/5'
-                  : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                ? 'text-green-400 border-green-400 bg-green-500/5'
+                : 'text-zinc-500 border-transparent hover:text-zinc-300'
                 }`}
             >
               <Eye className="h-4 w-4" />
@@ -240,8 +263,8 @@ export default function Dashboard() {
             <button
               onClick={() => setActiveTab('code')}
               className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'code'
-                  ? 'text-blue-400 border-blue-400 bg-blue-500/5'
-                  : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                ? 'text-blue-400 border-blue-400 bg-blue-500/5'
+                : 'text-zinc-500 border-transparent hover:text-zinc-300'
                 }`}
             >
               <Code2 className="h-4 w-4" />
@@ -250,8 +273,8 @@ export default function Dashboard() {
             <button
               onClick={() => setActiveTab('tweets')}
               className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'tweets'
-                  ? 'text-sky-400 border-sky-400 bg-sky-500/5'
-                  : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                ? 'text-sky-400 border-sky-400 bg-sky-500/5'
+                : 'text-zinc-500 border-transparent hover:text-zinc-300'
                 }`}
             >
               <Twitter className="h-4 w-4" />
