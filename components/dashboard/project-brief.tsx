@@ -1,27 +1,19 @@
 "use client"
 
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Sparkles, FileText } from "lucide-react"
+import { Sparkles, FileText, Rocket } from "lucide-react"
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { SpotlightCard } from "@/components/ui/spotlight-card"
 import { Button } from "@/components/ui/button"
 
 interface ProjectBriefProps {
-  onGenerate: (idea: string, vibe: string) => void
+  onGenerate: (idea: string) => void
   isGenerating: boolean
 }
 
 export function ProjectBrief({ onGenerate, isGenerating }: ProjectBriefProps) {
   const [idea, setIdea] = useState("")
-  const [vibe, setVibe] = useState("")
   const [isFocused, setIsFocused] = useState(false)
 
   return (
@@ -29,17 +21,17 @@ export function ProjectBrief({ onGenerate, isGenerating }: ProjectBriefProps) {
       <div className="p-6">
         {/* Header */}
         <div className="mb-6 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600/20">
-            <FileText className="h-4 w-4 text-blue-500" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600">
+            <Rocket className="h-4 w-4 text-white" />
           </div>
-          <h2 className="text-lg font-semibold text-white">Project Brief</h2>
+          <h2 className="text-lg font-semibold text-white">Launch Your Business</h2>
         </div>
 
         <div className="space-y-5">
           {/* Idea Textarea with glow effect */}
           <div className="space-y-2">
             <Label htmlFor="idea" className="text-sm font-medium text-zinc-300">
-              Your Idea
+              Describe Your Business Idea
             </Label>
             <motion.div
               animate={{
@@ -52,56 +44,27 @@ export function ProjectBrief({ onGenerate, isGenerating }: ProjectBriefProps) {
             >
               <textarea
                 id="idea"
-                placeholder="Describe your idea (e.g., A vegan meal prep service for tech workers in Bangalore)..."
-                className="min-h-[160px] w-full resize-none rounded-lg border-0 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0"
+                placeholder="E.g., A cyberpunk-themed coffee shop that specializes in 3D printed latte art..."
+                className="min-h-[180px] w-full resize-none rounded-lg border-0 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0"
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
               />
             </motion.div>
-          </div>
-
-          {/* Vibe Select */}
-          <div className="space-y-2">
-            <Label htmlFor="vibe" className="text-sm font-medium text-zinc-300">
-              Vibe
-            </Label>
-            <Select value={vibe} onValueChange={setVibe}>
-              <SelectTrigger
-                id="vibe"
-                className="border-zinc-800 bg-zinc-900 text-white focus:ring-blue-500/30"
-              >
-                <SelectValue placeholder="Select a vibe" />
-              </SelectTrigger>
-              <SelectContent className="border-zinc-800 bg-zinc-900">
-                <SelectItem value="professional" className="text-zinc-200 focus:bg-zinc-800 focus:text-white">
-                  Professional
-                </SelectItem>
-                <SelectItem value="playful" className="text-zinc-200 focus:bg-zinc-800 focus:text-white">
-                  Playful
-                </SelectItem>
-                <SelectItem value="urgent" className="text-zinc-200 focus:bg-zinc-800 focus:text-white">
-                  Urgent
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <p className="text-xs text-zinc-500">
+              Be specific! Include your target audience, unique selling points, and any style preferences.
+            </p>
           </div>
 
           {/* Generate Button */}
           <Button
             onClick={() => {
-              if (!idea) {
-                // You might want to add a toast here if you had the hook
-                return;
-              }
-              if (!vibe) {
-                return;
-              }
-              onGenerate(idea, vibe)
+              if (!idea.trim()) return;
+              onGenerate(idea)
             }}
-            disabled={isGenerating || !idea || !vibe}
-            className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            disabled={isGenerating || !idea.trim()}
+            className="w-full h-12 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/20"
           >
             {isGenerating ? (
               <>
@@ -112,20 +75,15 @@ export function ProjectBrief({ onGenerate, isGenerating }: ProjectBriefProps) {
                 >
                   <Sparkles className="h-4 w-4" />
                 </motion.div>
-                Generating Campaign...
+                Building Your Launch...
               </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Generate Campaign
+                Generate Landing Page & Posts
               </>
             )}
           </Button>
-          {!vibe && idea && (
-            <p className="text-xs text-red-400 text-center animate-pulse">
-              Please select a vibe to continue
-            </p>
-          )}
         </div>
       </div>
     </SpotlightCard>
