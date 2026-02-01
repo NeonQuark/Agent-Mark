@@ -16,7 +16,7 @@ export async function POST(req: Request) {
         console.log('🚀 [API] SEO Brief request for:', topic);
 
         const result = await streamObject({
-            model: google('models/gemini-2.5-flash-lite'),
+            model: google('models/gemini-2.0-flash'),
             schema: z.object({
                 targetKeyword: z.string().describe("The primary keyword to target"),
                 secondaryKeywords: z.array(z.string()).describe("List of 5-7 secondary/related keywords"),
