@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         console.log('🚀 [API] Repurpose request received. Prompt:', typeof prompt === 'string' ? prompt.substring(0, 50) : 'object');
 
         const result = await streamText({
-            model: google('models/gemini-2.5-flash'),
+            model: google('models/gemini-2.5-flash-lite'),
             system: `You are an expert social media strategist.
 
 Your goal: Transform the user's input into a high-engagement Twitter/X thread.
