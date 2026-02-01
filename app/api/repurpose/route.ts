@@ -12,6 +12,9 @@ export async function POST(req: Request) {
             return new Response('Prompt is required', { status: 400 });
         }
 
+        console.log('🚀 [API] Repurpose request received. Prompt length:', prompt?.length);
+        console.log('Using model: models/gemini-2.5-flash');
+
         // Updated to available model in 2026
         const result = await streamText({
             model: google('models/gemini-2.5-flash'),
@@ -31,13 +34,19 @@ IMPORTANT: Create a UNIQUE thread based on the specific input provided.`,
             prompt: prompt,
         });
 
+        console.log('StreamText initialized successfully');
+
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
+                console.log('Starting stream iteration');
                 try {
+                    let chunkCount = 0;
                     for await (const chunk of result.textStream) {
+                        chunkCount++;
                         controller.enqueue(encoder.encode(chunk));
                     }
+                    console.log('Stream finished. Total chunks:', chunkCount);
                     controller.close();
                 } catch (err) {
                     console.error('Stream processing error:', err);

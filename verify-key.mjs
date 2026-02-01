@@ -1,9 +1,9 @@
 
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs';
 import path from 'path';
 
-async function verify() {
-    // 1. Read API Key
+async function testFinal() {
     let apiKey = '';
     try {
         const envPath = path.join(process.cwd(), '.env.local');
@@ -15,45 +15,23 @@ async function verify() {
     } catch (e) { }
 
     if (!apiKey) {
-        console.error('❌ No API Key found in .env.local');
-        return;
+        console.log('Using provided key...');
+        apiKey = 'AIzaSyCxYgvCiyy7ovDugxrT9hh55Cm5TiSodhw'; // Using the key user provided to be sure
     }
 
-    console.log('🔑 API Key found:', apiKey.substring(0, 5) + '...');
-
-    // 2. Direct REST Call to List Models
-    console.log('📡 Fetching available models list from Google API...');
-    console.log('   URL: https://generativelanguage.googleapis.com/v1beta/models');
+    console.log('🚀 Testing confirmed model: gemini-2.5-flash');
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-        const data = await response.json();
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-        if (data.error) {
-            console.log('❌ API Error:', JSON.stringify(data.error, null, 2));
-        } else if (data.models) {
-            console.log('✅ Success! Found models:');
-            data.models.forEach(m => {
-                if (m.name.includes('gemini')) {
-                    console.log(`   - ${m.name.replace('models/', '')} (${m.supportedGenerationMethods.join(', ')})`);
-                }
-            });
-
-            // Try the first valid gemini model found
-            const validModel = data.models.find(m => m.name.includes('gemini') && m.supportedGenerationMethods.includes('generateContent'));
-            if (validModel) {
-                console.log(`\n✨ Recommendation: Use model "${validModel.name.replace('models/', '')}"`);
-            } else {
-                console.log('\n⚠️ No Gemini models with generateContent support found.');
-            }
-
-        } else {
-            console.log('⚠️ Unexpected response:', data);
-        }
+        const result = await model.generateContent('Write a 5 word poem about coding.');
+        console.log('✅ GENERATION SUCCESS!');
+        console.log('📜 Output:', result.response.text());
 
     } catch (error) {
-        console.error('❌ Network Error:', error.message);
+        console.error('❌ FAILED:', error.message);
     }
 }
 
-verify();
+testFinal();
