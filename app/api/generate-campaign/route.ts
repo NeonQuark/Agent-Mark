@@ -23,24 +23,51 @@ export async function POST(req: Request) {
         const result = await generateObject({
             model: google('models/gemini-3-flash-preview'),
             schema: z.object({
-                landingPageCode: z.string().describe("A complete React functional component for a landing page. MUST use Tailwind CSS inline classes like: bg-zinc-950, text-white, p-8, flex, etc. Include a hero section, features section, and CTA. Export as 'function LandingPage()'. NO TypeScript types. NO external images - use colored divs or emoji for visuals."),
-                tweets: z.array(z.string()).describe("Exactly 5 viral promotional tweets. Include relevant emojis. No hashtags."),
-                marketingAngle: z.string().describe("A one-sentence marketing strategy explanation."),
+                landingPageCode: z.string().describe("A complete React functional component using inline styles for a stunning landing page. Use style={{...}} syntax for styling."),
+                tweets: z.array(z.string()).describe("Exactly 5 viral promotional tweets with emojis. No hashtags."),
+                marketingAngle: z.string().describe("A one-sentence marketing strategy."),
             }),
-            system: `You are an expert React frontend developer. Generate a BEAUTIFUL landing page component.
+            system: `You are a React developer creating a STUNNING landing page.
 
-CRITICAL REQUIREMENTS:
-1. Use ONLY Tailwind CSS classes (bg-zinc-950, text-white, p-8, mx-auto, flex, grid, etc.)
-2. Create a complete functional component: function LandingPage() { return (...) }
-3. Dark theme: bg-zinc-950, bg-zinc-900 for cards, text-white, text-zinc-400 for secondary text
-4. Add proper layout: max-w-6xl mx-auto, padding, responsive classes
-5. Include: Hero section with headline + CTA button, Features grid, Call-to-action section, Footer
-6. Make buttons styled: bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-lg font-medium
-7. NO TypeScript, NO external images, NO imports (icons will be provided as globals)
-8. Use gradient text for headlines: bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent
+OUTPUT FORMAT - Generate a React component like this:
+function LandingPage() {
+  return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #09090b, #18181b)', color: 'white', fontFamily: 'system-ui' }}>
+      {/* Hero Section */}
+      <section style={{ padding: '80px 20px', textAlign: 'center', maxWidth: '1200px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: '3.5rem', fontWeight: 'bold', marginBottom: '20px', background: 'linear-gradient(to right, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Amazing Headline
+        </h1>
+        <p style={{ fontSize: '1.25rem', color: '#a1a1aa', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
+          Subtitle text here
+        </p>
+        <button style={{ padding: '16px 32px', background: 'linear-gradient(to right, #3b82f6, #8b5cf6)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: '600', cursor: 'pointer' }}>
+          Get Started →
+        </button>
+      </section>
+      
+      {/* Features Grid */}
+      <section style={{ padding: '60px 20px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+          <div style={{ background: '#27272a', padding: '32px', borderRadius: '16px', border: '1px solid #3f3f46' }}>
+            <div style={{ fontSize: '2rem', marginBottom: '16px' }}>🚀</div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '12px' }}>Feature Title</h3>
+            <p style={{ color: '#a1a1aa' }}>Feature description</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
 
-The page should look STUNNING and professional.`,
-            prompt: `Create a premium landing page for: ${idea}`,
+REQUIREMENTS:
+1. Use inline styles with style={{...}} syntax (NOT className)
+2. Use gradients for backgrounds: linear-gradient(to bottom, #09090b, #18181b)
+3. Use grid for layouts: display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))'
+4. Use emoji for icons: 🚀 ✨ ⚡ 💡 🎯 ⭐ 🔥 💎 🌟 ✅
+5. Create: Hero with gradient headline, Features grid (3-4 cards), CTA section, Footer
+6. Make it VISUALLY STUNNING with gradients and modern styling`,
+            prompt: `Create a beautiful landing page for: ${idea}`,
         });
 
         // Return complete JSON response
