@@ -12,8 +12,9 @@ export async function POST(req: Request) {
             return new Response('Prompt is required', { status: 400 });
         }
 
+        // Switch to 'gemini-pro' (stable) to avoid 404 errors
         const result = await streamText({
-            model: google('models/gemini-1.5-pro'),
+            model: google('models/gemini-pro'),
             system: `You are an expert Frontend Developer and UI/UX Designer.
       
       Your goal: specific tailored React + Tailwind CSS code based on the user's request.
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
             prompt: `Design a React component for: ${prompt}`,
         });
 
-        // Manual streaming to avoid SDK version issues
+        // Manual streaming (Nuclear Option)
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {

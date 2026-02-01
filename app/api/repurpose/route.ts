@@ -12,8 +12,9 @@ export async function POST(req: Request) {
             return new Response('Prompt is required', { status: 400 });
         }
 
+        // Switch to 'gemini-pro' (stable) to avoid 404 errors
         const result = await streamText({
-            model: google('models/gemini-1.5-pro'),
+            model: google('models/gemini-pro'),
             system: `You are an expert social media strategist.
 
 Your goal: Transform the user's input into a high-engagement Twitter/X thread.
@@ -30,7 +31,7 @@ IMPORTANT: Create a UNIQUE thread based on the specific input provided.`,
             prompt: prompt,
         });
 
-        // Manual streaming - compatible with all SDK versions
+        // Manual streaming (Nuclear Option)
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
@@ -40,6 +41,7 @@ IMPORTANT: Create a UNIQUE thread based on the specific input provided.`,
                     }
                     controller.close();
                 } catch (err) {
+                    console.error('Stream processing error:', err);
                     controller.error(err);
                 }
             },
@@ -53,9 +55,6 @@ IMPORTANT: Create a UNIQUE thread based on the specific input provided.`,
 
     } catch (error: any) {
         console.error('Error in repurpose:', error);
-        return new Response(JSON.stringify({ error: error.message || 'Failed to generate thread' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-        });
+        return new Response(JSON.stringify({ error: error.message || 'Failed to generate thread' }), { status: 500 });
     }
 }
