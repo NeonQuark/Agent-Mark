@@ -2,7 +2,7 @@
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
     try {
@@ -27,17 +27,34 @@ export async function POST(req: Request) {
       - If multiple files are needed, strict to one file or provide the main logical component.
       - The component should be exported as default.
       - Do not wrap in markdown code blocks like \`\`\`tsx ... \`\`\`. Return raw text of the code if possible, or if you must, use strictly one block.
-      - Actually, let's output raw code so the user can copy it directly or we might render it.
-      
-      But to be safe, wrap it in a standard markdown block \`\`\`tsx ... \`\`\` so we can parse it if we want to show it nicely.
       `,
             prompt: `Design a React component for: ${prompt}`,
         });
 
-        return result.toDataStreamResponse();
+        // Manual streaming to avoid SDK version issues
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const chunk of result.textStream) {
+                        controller.enqueue(encoder.encode(chunk));
+                    }
+                    controller.close();
+                } catch (err) {
+                    console.error('Stream processing error:', err);
+                    controller.error(err);
+                }
+            },
+        });
 
-    } catch (error) {
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+            },
+        });
+
+    } catch (error: any) {
         console.error('Error in design:', error);
-        return new Response(JSON.stringify({ error: 'Failed to generate design' }), { status: 500 });
+        return new Response(JSON.stringify({ error: error.message || 'Failed to generate design' }), { status: 500 });
     }
 }
