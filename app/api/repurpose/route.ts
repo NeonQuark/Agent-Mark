@@ -12,9 +12,9 @@ export async function POST(req: Request) {
             return new Response('Prompt is required', { status: 400 });
         }
 
-        // Switch to 'gemini-pro' (stable) to avoid 404 errors
+        // Updated to available model in 2026
         const result = await streamText({
-            model: google('models/gemini-pro'),
+            model: google('models/gemini-2.5-flash'),
             system: `You are an expert social media strategist.
 
 Your goal: Transform the user's input into a high-engagement Twitter/X thread.
@@ -31,7 +31,6 @@ IMPORTANT: Create a UNIQUE thread based on the specific input provided.`,
             prompt: prompt,
         });
 
-        // Manual streaming (Nuclear Option)
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {

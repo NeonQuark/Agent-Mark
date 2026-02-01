@@ -13,7 +13,6 @@ export async function POST(req: Request) {
             return new Response('Idea is required', { status: 400 });
         }
 
-        // Switch from OpenAI to Gemini ('gemini-pro')
         const systemPrompt = `
       Act as a world-class marketing strategist.
       Create a launch campaign for the following project:
@@ -29,12 +28,12 @@ export async function POST(req: Request) {
       Do not include any conversational filler. Just the output.
     `;
 
+        // Updated to available model in 2026
         const result = await streamText({
-            model: google('models/gemini-pro'),
+            model: google('models/gemini-2.5-flash'),
             messages: [{ role: 'user', content: systemPrompt }],
         });
 
-        // Manual streaming (Nuclear Option)
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
