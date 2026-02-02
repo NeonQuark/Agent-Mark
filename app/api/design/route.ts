@@ -24,6 +24,12 @@ export async function POST(req: Request) {
         homePage: z.string().describe("Complete React component for the Home/Landing page with inline styles"),
         productPage: z.string().describe("Complete React component for a Sample Product page with inline styles"),
         cartPage: z.string().describe("Complete React component for the Checkout/Cart page with inline styles"),
+        backendRecommendations: z.array(z.object({
+          name: z.string().describe("Name of the backend tech (e.g. Supabase, Firebase, Shopify, Next.js API)"),
+          reason: z.string().describe("Why this fits the specific project idea"),
+          pros: z.array(z.string()).describe("List of 3 pros"),
+          difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe("Implementation difficulty level")
+        })).describe("Top 3 backend recommendations for this specific e-commerce idea")
       }),
       system: `You are an expert e-commerce frontend developer. Create 3 React components for a website.
 

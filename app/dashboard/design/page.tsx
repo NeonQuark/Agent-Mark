@@ -3,20 +3,28 @@
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { Code2, Loader2, Copy, Check, Paintbrush, Home, ShoppingCart, Package, Eye, Smartphone, Tablet, Monitor, Pencil } from "lucide-react"
+import { Code2, Loader2, Copy, Check, Paintbrush, Home, ShoppingCart, Package, Eye, Smartphone, Tablet, Monitor, Pencil, Server, CheckCircle2 } from "lucide-react"
 import { DownloadButton } from "@/components/dashboard/download-button"
+
+interface BackendRec {
+    name: string;
+    reason: string;
+    pros: string[];
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+}
 
 interface DesignResult {
     homePage?: string;
     productPage?: string;
     cartPage?: string;
+    backendRecommendations?: BackendRec[];
 }
 
 export default function DesignPage() {
     const [prompt, setPrompt] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [result, setResult] = useState<DesignResult | null>(null)
-    const [activeTab, setActiveTab] = useState<'home' | 'product' | 'cart'>('home')
+    const [activeTab, setActiveTab] = useState<'home' | 'product' | 'cart' | 'backend'>('home')
     const [viewMode, setViewMode] = useState<'preview' | 'code'>('preview')
     const [copiedCode, setCopiedCode] = useState(false)
     const [device, setDevice] = useState<'mobile' | 'tablet' | 'desktop'>('desktop')
@@ -72,6 +80,7 @@ export default function DesignPage() {
             case 'home': return result.homePage || ''
             case 'product': return result.productPage || ''
             case 'cart': return result.cartPage || ''
+            default: return ''
         }
     }
 
@@ -160,6 +169,7 @@ export default function DesignPage() {
         { id: 'home' as const, label: 'Home Page', icon: Home },
         { id: 'product' as const, label: 'Product Page', icon: Package },
         { id: 'cart' as const, label: 'Cart / Checkout', icon: ShoppingCart },
+        { id: 'backend' as const, label: 'Tech Stack', icon: Server },
     ]
 
     return (
@@ -222,7 +232,7 @@ export default function DesignPage() {
                                             : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300 border border-transparent'
                                         }`}
                                 >
-                                    <tab.icon className="h-4 w-4" />
+                                    <tab.icon className={`h-4 w-4 ${tab.id === 'backend' ? 'text-purple-400' : ''}`} />
                                     {tab.label}
                                 </button>
                             ))}
@@ -232,101 +242,152 @@ export default function DesignPage() {
 
                 {/* Right Panel: Output */}
                 <div className="flex-1 flex flex-col bg-[#0d1117]">
-                    {/* Toolbar */}
-                    {result && (
-                        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950/80 px-4 h-14">
-                            {/* View Toggle */}
-                            <div className="flex items-center gap-1 bg-zinc-900/50 p-1 rounded-lg">
-                                <button
-                                    onClick={() => setViewMode('preview')}
-                                    className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'preview' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
-                                        }`}
-                                >
-                                    <Eye className="h-3 w-3" /> Preview
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('code')}
-                                    className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'code' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
-                                        }`}
-                                >
-                                    <Code2 className="h-3 w-3" /> Code
-                                </button>
-                            </div>
+                    {activeTab === 'backend' ? (
+                        <div className="flex-1 overflow-auto p-12 flex flex-col items-center">
+                            <div className="max-w-3xl w-full space-y-8">
+                                <div className="text-center space-y-2">
+                                    <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Recommended Tech Stack</h2>
+                                    <p className="text-zinc-400">Best backend solutions for "{prompt}"</p>
+                                </div>
 
-                            {/* Center Tools (Live Edit & Devices) */}
-                            {viewMode === 'preview' && (
-                                <div className="flex items-center gap-4">
-                                    {/* Device Toggles */}
+                                <div className="grid gap-6">
+                                    {result?.backendRecommendations?.map((rec, i) => (
+                                        <motion.div
+                                            key={i}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: i * 0.1 }}
+                                            className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 transition-colors"
+                                        >
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <h3 className="text-xl font-semibold text-white mb-1 flex items-center gap-2">
+                                                        {rec.name}
+                                                        {i === 0 && <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">Top Pick</span>}
+                                                    </h3>
+                                                    <div className={`text-xs inline-flex items-center gap-1 px-2 py-0.5 rounded-md border ${rec.difficulty === 'Easy' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                            rec.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                                                                'bg-red-500/10 text-red-400 border-red-500/20'
+                                                        }`}>
+                                                        {rec.difficulty} to implement
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-zinc-300 mb-4 leading-relaxed">{rec.reason}</p>
+
+                                            <div className="space-y-2">
+                                                {rec.pros.map((pro, idx) => (
+                                                    <div key={idx} className="flex items-start gap-2 text-sm text-zinc-400">
+                                                        <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                                                        {pro}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Toolbar */}
+                            {result && (
+                                <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950/80 px-4 h-14">
+                                    {/* View Toggle */}
                                     <div className="flex items-center gap-1 bg-zinc-900/50 p-1 rounded-lg">
-                                        <button onClick={() => setDevice('mobile')} className={`p-1.5 rounded-md ${device === 'mobile' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}><Smartphone className="h-4 w-4" /></button>
-                                        <button onClick={() => setDevice('tablet')} className={`p-1.5 rounded-md ${device === 'tablet' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}><Tablet className="h-4 w-4" /></button>
-                                        <button onClick={() => setDevice('desktop')} className={`p-1.5 rounded-md ${device === 'desktop' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}><Monitor className="h-4 w-4" /></button>
+                                        <button
+                                            onClick={() => setViewMode('preview')}
+                                            className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'preview' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+                                                }`}
+                                        >
+                                            <Eye className="h-3 w-3" /> Preview
+                                        </button>
+                                        <button
+                                            onClick={() => setViewMode('code')}
+                                            className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${viewMode === 'code' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+                                                }`}
+                                        >
+                                            <Code2 className="h-3 w-3" /> Code
+                                        </button>
                                     </div>
 
-                                    {/* Live Edit Toggle */}
-                                    <button
-                                        onClick={() => setIsLiveEditing(!isLiveEditing)}
-                                        className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${isLiveEditing
-                                                ? 'bg-green-500/10 text-green-400 border-green-500/50 animate-pulse'
-                                                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white'
-                                            }`}
+                                    {/* Center Tools (Live Edit & Devices) */}
+                                    {viewMode === 'preview' && (
+                                        <div className="flex items-center gap-4">
+                                            {/* Device Toggles */}
+                                            <div className="flex items-center gap-1 bg-zinc-900/50 p-1 rounded-lg">
+                                                <button onClick={() => setDevice('mobile')} className={`p-1.5 rounded-md ${device === 'mobile' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}><Smartphone className="h-4 w-4" /></button>
+                                                <button onClick={() => setDevice('tablet')} className={`p-1.5 rounded-md ${device === 'tablet' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}><Tablet className="h-4 w-4" /></button>
+                                                <button onClick={() => setDevice('desktop')} className={`p-1.5 rounded-md ${device === 'desktop' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}><Monitor className="h-4 w-4" /></button>
+                                            </div>
+
+                                            {/* Live Edit Toggle */}
+                                            <button
+                                                onClick={() => setIsLiveEditing(!isLiveEditing)}
+                                                className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${isLiveEditing
+                                                        ? 'bg-green-500/10 text-green-400 border-green-500/50 animate-pulse'
+                                                        : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white'
+                                                    }`}
+                                            >
+                                                <Pencil className="h-3 w-3" />
+                                                {isLiveEditing ? 'Live Editing ON' : 'Edit Text'}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Copy Button */}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleCopyCode}
+                                        className={copiedCode ? "text-green-400" : "text-zinc-400"}
                                     >
-                                        <Pencil className="h-3 w-3" />
-                                        {isLiveEditing ? 'Live Editing ON' : 'Edit Text'}
-                                    </button>
+                                        {copiedCode ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                                        {copiedCode ? "Copied" : "Copy Code"}
+                                    </Button>
                                 </div>
                             )}
 
-                            {/* Copy Button */}
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleCopyCode}
-                                className={copiedCode ? "text-green-400" : "text-zinc-400"}
-                            >
-                                {copiedCode ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                                {copiedCode ? "Copied" : "Copy Code"}
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* Content Area */}
-                    <div className="flex-1 overflow-hidden relative flex justify-center bg-[#0d1117]">
-                        {!result ? (
-                            <div className="h-full w-full flex flex-col items-center justify-center text-zinc-600 gap-4">
-                                <div className="h-16 w-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                                    <Paintbrush className="h-8 w-8 opacity-50" />
-                                </div>
-                                <p>Describe your store and click Generate</p>
-                                <p className="text-sm text-zinc-700">Get 3 full pages + Export to ZIP</p>
-                            </div>
-                        ) : (
-                            <motion.div
-                                key={`${activeTab}-${viewMode}`}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className={`h-full transition-all duration-300 ease-in-out ${viewMode === 'code' ? 'w-full' :
-                                        device === 'mobile' ? 'w-[375px]' :
-                                            device === 'tablet' ? 'w-[768px]' :
-                                                'w-full'
-                                    }`}
-                            >
-                                {viewMode === 'preview' ? (
-                                    <iframe
-                                        ref={iframeRef}
-                                        srcDoc={generatePreviewHTML(getCurrentCode())}
-                                        className={`w-full h-full border-0 bg-white ${device !== 'desktop' ? 'my-4 rounded-xl shadow-2xl border border-zinc-800' : ''}`}
-                                        sandbox="allow-scripts allow-modals"
-                                        title={`${activeTab} Preview`}
-                                    />
+                            {/* Content Area */}
+                            <div className="flex-1 overflow-hidden relative flex justify-center bg-[#0d1117]">
+                                {!result ? (
+                                    <div className="h-full w-full flex flex-col items-center justify-center text-zinc-600 gap-4">
+                                        <div className="h-16 w-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                                            <Paintbrush className="h-8 w-8 opacity-50" />
+                                        </div>
+                                        <p>Describe your store and click Generate</p>
+                                        <p className="text-sm text-zinc-700">Get 3 full pages + Export + Backend Tips</p>
+                                    </div>
                                 ) : (
-                                    <pre className="p-6 h-full overflow-auto font-mono text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                                        {getCurrentCode()}
-                                    </pre>
+                                    <motion.div
+                                        key={`${activeTab}-${viewMode}`}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className={`h-full transition-all duration-300 ease-in-out ${viewMode === 'code' ? 'w-full' :
+                                                device === 'mobile' ? 'w-[375px]' :
+                                                    device === 'tablet' ? 'w-[768px]' :
+                                                        'w-full'
+                                            }`}
+                                    >
+                                        {viewMode === 'preview' ? (
+                                            <iframe
+                                                ref={iframeRef}
+                                                srcDoc={generatePreviewHTML(getCurrentCode())}
+                                                className={`w-full h-full border-0 bg-white ${device !== 'desktop' ? 'my-4 rounded-xl shadow-2xl border border-zinc-800' : ''}`}
+                                                sandbox="allow-scripts allow-modals"
+                                                title={`${activeTab} Preview`}
+                                            />
+                                        ) : (
+                                            <pre className="p-6 h-full overflow-auto font-mono text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
+                                                {getCurrentCode()}
+                                            </pre>
+                                        )}
+                                    </motion.div>
                                 )}
-                            </motion.div>
-                        )}
-                    </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
