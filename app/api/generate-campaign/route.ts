@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     // Use generateObject instead of streamObject for complete response
     const result = await generateObject({
-      model: google('models/gemini-2.0-flash'),
+      model: google('models/gemini-2.5-flash-lite'),
       schema: z.object({
         landingPageCode: z.string().describe("A complete React functional component using inline styles for a stunning landing page. Use style={{...}} syntax for styling."),
         tweets: z.array(z.string()).describe("Exactly 5 viral promotional tweets with emojis. No hashtags."),

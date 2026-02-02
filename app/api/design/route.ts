@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     console.log('🚀 [API] Design request received:', prompt?.substring(0, 50));
 
     const result = await generateObject({
-      model: google('models/gemini-2.0-flash'),
+      model: google('models/gemini-2.5-flash-lite'),
       schema: z.object({
         homePage: z.string().describe("Complete React component for the Home/Landing page with inline styles"),
         productPage: z.string().describe("Complete React component for a Sample Product page with inline styles"),
