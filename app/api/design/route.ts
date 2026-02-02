@@ -57,6 +57,11 @@ USE EMOJIS for icons: 🛒 🛍️ ⭐ ❤️ 📦 ✨ 🔥 💎
 USE GRADIENTS: linear-gradient(to right, #3b82f6, #8b5cf6)
 DARK THEME: background #09090b, cards #27272a, text white/#a1a1aa
 
+CRITICAL IMAGE RULE:
+Use 'https://placehold.co/600x400/27272a/FFF?text=Product' for images.
+Example: <img src="https://placehold.co/400x300/27272a/FFF?text=Sneaker+1" alt="Sneaker" style={{width: '100%', borderRadius: '12px'}} />
+NEVER use "Sneaker 1" as src. ALWAYS use the full URL.
+
 Make each page visually STUNNING with modern design.`,
       prompt: `Create an e-commerce website for: ${prompt}`,
     });

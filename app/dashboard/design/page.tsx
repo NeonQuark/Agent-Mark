@@ -19,6 +19,16 @@ export default function DesignPage() {
     const [viewMode, setViewMode] = useState<'preview' | 'code'>('preview')
     const [copiedCode, setCopiedCode] = useState(false)
 
+    // Listen for messages from preview iframe
+    if (typeof window !== 'undefined') {
+        window.addEventListener('message', (event) => {
+            if (typeof event.data === 'string' && event.data.startsWith('switch-tab:')) {
+                const newTab = event.data.split(':')[1] as 'home' | 'product' | 'cart';
+                setActiveTab(newTab);
+            }
+        });
+    }
+
     const handleGenerate = async () => {
         if (!prompt) return
         setIsLoading(true)
@@ -83,6 +93,17 @@ export default function DesignPage() {
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script type="text/babel">
+    // Add click handler for navigation
+    window.addEventListener('click', (e) => {
+      const target = e.target;
+      if (target.tagName === 'A' || target.tagName === 'BUTTON') {
+        const text = target.innerText.toLowerCase();
+        if (text.includes('home')) window.parent.postMessage('switch-tab:home', '*');
+        if (text.includes('product') || text.includes('shop')) window.parent.postMessage('switch-tab:product', '*');
+        if (text.includes('cart') || text.includes('checkout')) window.parent.postMessage('switch-tab:cart', '*');
+      }
+    });
+
     try {
       ${cleaned}
       
@@ -174,8 +195,8 @@ export default function DesignPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${activeTab === tab.id
-                                            ? 'bg-zinc-800 text-white'
-                                            : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300'
+                                        ? 'bg-zinc-800 text-white'
+                                        : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300'
                                         }`}
                                 >
                                     <tab.icon className="h-4 w-4" />
@@ -195,8 +216,8 @@ export default function DesignPage() {
                                 <button
                                     onClick={() => setViewMode('preview')}
                                     className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${viewMode === 'preview'
-                                            ? 'text-green-400 border-green-400 bg-green-500/5'
-                                            : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                                        ? 'text-green-400 border-green-400 bg-green-500/5'
+                                        : 'text-zinc-500 border-transparent hover:text-zinc-300'
                                         }`}
                                 >
                                     <Eye className="h-4 w-4" />
@@ -205,8 +226,8 @@ export default function DesignPage() {
                                 <button
                                     onClick={() => setViewMode('code')}
                                     className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${viewMode === 'code'
-                                            ? 'text-blue-400 border-blue-400 bg-blue-500/5'
-                                            : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                                        ? 'text-blue-400 border-blue-400 bg-blue-500/5'
+                                        : 'text-zinc-500 border-transparent hover:text-zinc-300'
                                         }`}
                                 >
                                     <Code2 className="h-4 w-4" />
